@@ -40,7 +40,7 @@ void applyFilter(sf::Image& image)
             {
                 for (int kernelY = -1; kernelY <= 1; ++kernelY)
                 {
-                    const auto GxValue = Gy[kernelX + 1][kernelY + 1];
+                    const auto GxValue = Gx[kernelX + 1][kernelY + 1];
                     const auto GyValue = Gy[kernelX + 1][kernelY + 1];
                     const auto pixel = image.getPixel(x + kernelX, y + kernelY);
 

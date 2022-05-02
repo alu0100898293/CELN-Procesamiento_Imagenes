@@ -32,14 +32,22 @@ void applyFilter(sf::Image& image)
     const auto imageWidth = static_cast<int>(image.getSize().x);
     auto outputImage = image;
 
+    if(MPI::getRank()==0)
+        std::cout << "Image height: " << imageHeight << std::endl;
+
     const auto rowsPerProcess = imageHeight / MPI::getWorldSize();
     auto processBeginRow = MPI::getRank() * rowsPerProcess;
-    auto processEndRow = MPI::getRank() * rowsPerProcess + rowsPerProcess;
+    auto processEndRow = MPI::getRank() * rowsPerProcess + rowsPerProcess+1;
+
+    if(MPI::getRank()==0)
+        std::cout << "***row per process: " << rowsPerProcess << std::endl;
 
     if (processBeginRow == 0) processBeginRow += 1;
-    if (processEndRow == imageHeight) processEndRow -= 1;
+    if (MPI::getRank()==MPI::getWorldSize()-1) processEndRow = imageHeight-1;
+
+    std::cout << "Processor: " << MPI::getRank() << " starting row:" <<processBeginRow<< " end row:"<< processEndRow <<std::endl;
     
-    for (int y = processBeginRow; y < processEndRow; ++y)
+    for (int y = processBeginRow; y <= processEndRow; ++y)
     {
         for (int x = 1; x < imageWidth - 1; ++x)
         {
@@ -79,7 +87,7 @@ void applyFilter(sf::Image& image)
     image = std::move(outputImage);
 }
 
-auto distributeImage(const sf::Image& image)
+sf::Image distributeImage(const sf::Image& image)
 {
     sf::Image processImage;
     std::uint32_t dataSize, imageWidth, imageHeight;
@@ -111,7 +119,7 @@ void collectImage(sf::Image& image, std::vector<sf::Uint8>& buffer)
         buffer.data(), dataSizePerProcess, MPI_UNSIGNED_CHAR, MPI::MASTER_PROCESS, MPI_COMM_WORLD);
 }
 
-auto loadImageForMaster(std::string &imageName)
+sf::Image loadImageForMaster(std::string &imageName)
 {
     sf::Image image{};
     if (MPI::isMasterProcess())
@@ -142,7 +150,7 @@ void saveImage(sf::Image& image, std::string imageName)
     }
 }
 
-auto calculateImageSize(const sf::Image& image)
+int calculateImageSize(const sf::Image& image)
 {
     return image.getSize().x * image.getSize().y * 4;
 }
@@ -178,7 +186,10 @@ int main(int argc, char** argv)
     if (MPI::isMasterProcess())
         std::cout << "Distributing, filtering, collecting and rebuilding image"<< std::endl;
     
-    t1 = MPI_Wtime();
+    if (MPI::isMasterProcess())
+        t1 = MPI_Wtime();
+
+    MPI::synchronizeProcesses();
     image = distributeImage(image);
  
     std::vector<sf::Uint8> buffer{};
@@ -190,9 +201,11 @@ int main(int argc, char** argv)
 
     reconstructImage(image, buffer);
 
-    t2 = MPI_Wtime();
-    std::cout << "\tElapsed time for process " << MPI::getRank() << ": " << t2-t1 << " sec" << std::endl;
-    
+    if (MPI::isMasterProcess()){
+        t2 = MPI_Wtime();
+        std::cout << "\tElapsed time for process " << MPI::getRank() << ": " << t2-t1 << " sec" << std::endl;
+    }
+
     if (MPI::isMasterProcess())
     {
         std::cout << "Saving image duration: ";

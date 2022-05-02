@@ -68,7 +68,7 @@ void applyFilter(sf::Image& image)
     image = std::move(outputImage);
 }
 
-auto loadImage(std::string &imageName)
+sf::Image loadImage(std::string &imageName)
 {
     sf::Image image{};
     

@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project( BorderDetectionMpi )
-
-set( CMAKE_XX_STANDARD 14)
+project( BorderDetectionMpi LANGUAGES CXX)
 
 find_package( MPI REQUIRED COMPONENTS CXX)
 include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})

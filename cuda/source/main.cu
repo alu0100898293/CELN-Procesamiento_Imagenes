@@ -79,8 +79,6 @@ auto calculateImageSize(const sf::Image& image)
 
 void applyFilter(sf::Image& image, int grid, int block)
 {
-    cudaMalloc(&outImg, image.getPixelsPtr() + calculateImageSize(image) );
-
     thrust::host_vector<sf::Uint8> hostImageData{ image.getPixelsPtr(), image.getPixelsPtr() + calculateImageSize(image) };
     thrust::device_vector<sf::Uint8> devImageData(calculateImageSize(image));
     thrust::device_vector<sf::Uint8> devOutputImageData(calculateImageSize(image));

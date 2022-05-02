@@ -32,22 +32,15 @@ void applyFilter(sf::Image& image)
     const auto imageWidth = static_cast<int>(image.getSize().x);
     auto outputImage = image;
 
-    if(MPI::getRank()==0)
-        std::cout << "Image height: " << imageHeight << std::endl;
-
     const auto rowsPerProcess = imageHeight / MPI::getWorldSize();
     auto processBeginRow = MPI::getRank() * rowsPerProcess;
-    auto processEndRow = MPI::getRank() * rowsPerProcess + rowsPerProcess+1;
+    auto processEndRow = MPI::getRank() * rowsPerProcess + rowsPerProcess;
 
-    if(MPI::getRank()==0)
-        std::cout << "***row per process: " << rowsPerProcess << std::endl;
 
     if (processBeginRow == 0) processBeginRow += 1;
     if (MPI::getRank()==MPI::getWorldSize()-1) processEndRow = imageHeight-1;
 
-    std::cout << "Processor: " << MPI::getRank() << " starting row:" <<processBeginRow<< " end row:"<< processEndRow <<std::endl;
-    
-    for (int y = processBeginRow; y <= processEndRow; ++y)
+    for (int y = processBeginRow; y <processEndRow; ++y)
     {
         for (int x = 1; x < imageWidth - 1; ++x)
         {
@@ -165,26 +158,15 @@ void logDuration(const uint64_t duration)
 
 int main(int argc, char** argv)
 {
-    double tinit, tfinish, t1, t2;
+    double t1, t2;
 
     std::string imageName = argv[1];
     sf::Image image;
 
     MPI_Init(&argc, &argv);
 
-    tinit = MPI_Wtime();
-
     if (MPI::isMasterProcess())
-    {
-        std::cout << "Loading image duartion: ";
-        t1 = MPI_Wtime();
         image = loadImageForMaster(imageName);
-        t2 = MPI_Wtime();
-        std::cout << (t2-t1) << " sec" << std::endl;
-    }
-    
-    if (MPI::isMasterProcess())
-        std::cout << "Distributing, filtering, collecting and rebuilding image"<< std::endl;
     
     if (MPI::isMasterProcess())
         t1 = MPI_Wtime();
@@ -202,24 +184,14 @@ int main(int argc, char** argv)
     reconstructImage(image, buffer);
 
     if (MPI::isMasterProcess()){
+        std::cout << "\tImage size " << buffer.size() << std::endl;
         t2 = MPI_Wtime();
-        std::cout << "\tElapsed time for process " << MPI::getRank() << ": " << t2-t1 << " sec" << std::endl;
+        std::cout << "\tElapsed time for process " << MPI::getRank() << ": " << (t2-t1)*1000 << " ms" << std::endl;
     }
 
     if (MPI::isMasterProcess())
-    {
-        std::cout << "Saving image duration: ";
-        t1 = MPI_Wtime();
         saveImage(image, imageName);
-        t2 = MPI_Wtime();
-        std::cout << (t2-t1) << " sec" << std::endl;
-    }
-
-    if (MPI::isMasterProcess())
-    {
-        auto tfinish = MPI_Wtime();
-        std::cout << "Total time: " << (tfinish-tinit) << " sec" << std::endl;
-    }
+        
     MPI_Finalize();
     
     return EXIT_SUCCESS;

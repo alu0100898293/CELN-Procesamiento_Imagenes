@@ -89,35 +89,18 @@ void saveImage(sf::Image& image,std::string imageName)
 
 int main(int argc, char** argv)
 {
-    auto tinit = std::chrono::high_resolution_clock::now();
-
     std::string imageName = argv[1];
 
-    std::cout << "Loading image"<< std::endl;
-    auto t1 = std::chrono::high_resolution_clock::now();
     sf::Image image = loadImage(imageName);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "\tElapsed time: " << (float) (duration / 1000.0) << " sec" << std::endl;
 
     std::cout << "Filtering image"<< std::endl;
-    t1 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
     applyFilter(image);
-    t2 = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "\tElapsed time: " << (float) (duration / 1000.0) << " sec" << std::endl;
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    std::cout << "\tElapsed time: " << (float) (duration) << " ms" << std::endl;
 
-    std::cout << "Saving image"<< std::endl;
-    t1 = std::chrono::high_resolution_clock::now();
     saveImage(image, imageName);
-    t2 = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "\tElapsed time: " << (float) (duration / 1000.0) << " sec" << std::endl;
-
-    
-    auto tfinish = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::milliseconds>(tfinish - tinit).count();
-    std::cout << "Total time: " << (float) (duration / 1000.0) << " sec" << std::endl;
 
     return EXIT_SUCCESS;
 }

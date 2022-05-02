@@ -11,6 +11,7 @@ Para la ejecución del programa debe seguir los siguientes pasos:
 2. Ejecutar el comando **cmake .** en dicho directorio.
 3. Una vez finalizado el paso anterior, ejecutar el comando **make**.
 4. Por último, debemos tener generado un ejecutable con el nombre **main**, que según el progama que usemos varía el funcionamiento:
-   - Secuencial, openmp y CUDA: solo es necesario ejecutar **main** seguido del nombre de la imagen.
+   - Secuencial y openmp: solo es necesario ejecutar **main** seguido del nombre de la imagen.
    - MPI: se debe ejecutar un **mpi run** del ejecutable **main**, seguido de los argumentos propios de mpi como el número de procesadores y el nombre de la imagen a analizar.
+   - Cuda: solo es necesario ejecutar **main** seguido del nombre de la imagen y del número de bloques por malla. La cantidad de mallas se basa en el tamaño de la imagen.
 5.  **IMPORTANTE**: el programa analiza las imágenes que se localizan en el directorio **images**, así que si quiere analizar una imagen nueva a las suministradas en este repositorio, sitúela en el directorio mencionado. La imagen resultante se creará en un directorio llamado **out** dentro del directorio del programa ejecutado.

@@ -171,7 +171,6 @@ int main(int argc, char** argv)
     if (MPI::isMasterProcess())
         t1 = MPI_Wtime();
 
-    MPI::synchronizeProcesses();
     image = distributeImage(image);
  
     std::vector<sf::Uint8> buffer{};
@@ -184,7 +183,6 @@ int main(int argc, char** argv)
     reconstructImage(image, buffer);
 
     if (MPI::isMasterProcess()){
-        std::cout << "\tImage size " << buffer.size() << std::endl;
         t2 = MPI_Wtime();
         std::cout << "\tElapsed time for process " << MPI::getRank() << ": " << (t2-t1)*1000 << " ms" << std::endl;
     }

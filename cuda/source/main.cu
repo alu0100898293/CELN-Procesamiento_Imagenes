@@ -77,7 +77,7 @@ auto calculateImageSize(const sf::Image& image)
     return image.getSize().x * image.getSize().y * 4;
 }
 
-void applyFilter(sf::Image& image, int grid, int block)
+void applyFilter(sf::Image& image, int block)
 {
     thrust::host_vector<sf::Uint8> hostImageData{ image.getPixelsPtr(), image.getPixelsPtr() + calculateImageSize(image) };
     thrust::device_vector<sf::Uint8> devImageData(calculateImageSize(image));
@@ -85,7 +85,8 @@ void applyFilter(sf::Image& image, int grid, int block)
     thrust::copy(hostImageData.begin(), hostImageData.end(), devImageData.begin());
 
     dim3 dimBlock(block, block);
-    dim3 dimGrid(grid, grid);
+    dim3 dimGrid(static_cast<uint32_t>(ceil((float)image.getSize().x / dimBlock.x)),
+                   static_cast<uint32_t>(ceil((float)image.getSize().y / dimBlock.y)));
 
     applyFilterOnCuda<<<dimGrid, dimBlock>>>(
         devImageData.data().get(), devOutputImageData.data().get(),
@@ -96,7 +97,7 @@ void applyFilter(sf::Image& image, int grid, int block)
 }
 
 
-auto loadImage(std::string &imageName)
+sf::Image  loadImage(std::string &imageName)
 {
     sf::Image image{};
     
@@ -120,17 +121,16 @@ int main(int argc, char** argv)
     // Timers
     cudaEvent_t start, stop;
     
-    std::string imageName = argv[1];
-    int grid, block;
+    std::string imageName;
+    int block;
     /* Command line parameters processing */
     switch(argc) {
-        case 4: 
+        case 3: 
                 imageName = argv[1];
-                grid = atoi(argv[2]);
-                block = atoi(argv[3]);
+                block = atoi(argv[2]);
                 break;
         default: 
-                printf("\nUse: %s <Img_Name> <Dim_Grid> <Dim_Block>", argv[0]);
+                printf("\nUse: %s <Img_Name>  <Dim_Block>", argv[0]);
                 break;
     }
     
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     cudaEventCreate(&stop);
     cudaEventRecord(start);
 
-    applyFilter(image, grid, block);
+    applyFilter(image, block);
 
     cudaEventRecord(stop);
     cudaDeviceSynchronize();
